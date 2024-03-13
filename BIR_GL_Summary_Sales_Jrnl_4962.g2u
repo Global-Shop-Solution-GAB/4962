@@ -1,0 +1,587 @@
+Program.Sub.ScreenSU.Start
+Gui.SS_Form1..Create
+Gui.SS_Form1..Size(4860,3855)
+Gui.SS_Form1..MinX(0)
+Gui.SS_Form1..MinY(0)
+Gui.SS_Form1..Position(0,0)
+Gui.SS_Form1..BackColor(-2147483633)
+Gui.SS_Form1..MousePointer(0)
+Gui.SS_Form1..Caption("Summary Sales Journal")
+Gui.SS_Form1..Event(UnLoad,SS_Form1_UnLoad)
+Gui.SS_Form1.ddl_Summarize.Create(DropDownList)
+Gui.SS_Form1.ddl_Summarize.Size(1875,330)
+Gui.SS_Form1.ddl_Summarize.Position(150,495)
+Gui.SS_Form1.ddl_Summarize.DefaultValue("")
+Gui.SS_Form1.ddl_Summarize.Event(Change,ddl_Summarize_Change)
+Gui.SS_Form1.ddl_Summarize.Event(Click,ddl_Summarize_Click)
+Gui.SS_Form1.lbl_Summarize.Create(Label,"Summarize By:",True,1935,255,0,135,255,True,0,"Arial",8,-2147483633,0)
+Gui.SS_Form1.fr_FiscalYear.Create(Frame)
+Gui.SS_Form1.fr_FiscalYear.Size(2340,1335)
+Gui.SS_Form1.fr_FiscalYear.Position(45,945)
+Gui.SS_Form1.fr_FiscalYear.BorderStyle(0)
+Gui.SS_Form1.dtp_FiscalYear.Create(DatePicker)
+Gui.SS_Form1.dtp_FiscalYear.Size(1935,285)
+Gui.SS_Form1.dtp_FiscalYear.Position(90,540)
+Gui.SS_Form1.dtp_FiscalYear.Parent("fr_FiscalYear")
+Gui.SS_Form1.lbl_FiscalYear.Create(Label,"Fiscal Year",True,1935,255,0,105,330,True,0,"Arial",8,-2147483633,0)
+Gui.SS_Form1.lbl_FiscalYear.Parent("fr_FiscalYear")
+Gui.SS_Form1.fr_DateRange.Create(Frame)
+Gui.SS_Form1.fr_DateRange.Size(4350,1350)
+Gui.SS_Form1.fr_DateRange.Position(45,840)
+Gui.SS_Form1.fr_DateRange.BorderStyle(0)
+Gui.SS_Form1.lbl_begDate.Create(Label,"Beginning Date",True,1800,255,0,105,345,True,0,"Arial",8,-2147483633,0)
+Gui.SS_Form1.lbl_begDate.Parent("fr_DateRange")
+Gui.SS_Form1.lbl_endDate.Create(Label,"Ending Date",True,1935,255,0,2175,360,True,0,"Arial",8,-2147483633,0)
+Gui.SS_Form1.lbl_endDate.Parent("fr_DateRange")
+Gui.SS_Form1.dtp_BegDate.Create(DatePicker)
+Gui.SS_Form1.dtp_BegDate.Size(1935,285)
+Gui.SS_Form1.dtp_BegDate.Position(90,570)
+Gui.SS_Form1.dtp_BegDate.Parent("fr_DateRange")
+Gui.SS_Form1.dtp_EndDate.Create(DatePicker)
+Gui.SS_Form1.dtp_EndDate.Size(1935,285)
+Gui.SS_Form1.dtp_EndDate.Position(2160,570)
+Gui.SS_Form1.dtp_EndDate.Parent("fr_DateRange")
+Gui.SS_Form1.chk_AllDates.Create(CheckBox)
+Gui.SS_Form1.chk_AllDates.Size(1560,360)
+Gui.SS_Form1.chk_AllDates.Position(90,915)
+Gui.SS_Form1.chk_AllDates.Parent("fr_DateRange")
+Gui.SS_Form1.chk_AllDates.Caption("All Dates")
+Gui.SS_Form1.chk_AllDates.Event(Click,chk_AllDates_Click)
+Gui.SS_Form1.chk_ExclAccts.Create(CheckBox)
+Gui.SS_Form1.chk_ExclAccts.Size(3720,360)
+Gui.SS_Form1.chk_ExclAccts.Position(150,2295)
+Gui.SS_Form1.chk_ExclAccts.Caption("Use Exclusion Accounts to Exclude Records")
+Gui.SS_Form1.cmd_Print.Create(Button)
+Gui.SS_Form1.cmd_Print.Size(1050,390)
+Gui.SS_Form1.cmd_Print.Position(135,2790)
+Gui.SS_Form1.cmd_Print.Caption("Print")
+Gui.SS_Form1.cmd_Print.Event(Click,cmd_Print_Click)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Variable.Global.iKey.Declare(Long,0)
+Variable.Global.iLogid.declare(Long,0)
+Variable.Global.iBIRunID.declare(Long,0)
+Variable.Global.sProps.Declare(String)
+Variable.Global.begDate.Declare(Date)
+Variable.Global.endDate.Declare(Date)
+Variable.Global.Currency.Declare(String)
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCon.Declare(Long)
+
+F.Global.Object.CreateDB("GlobalDB",V.Caller.CompanyCode,V.Ambient.DBServerName,True,V.Local.iCon)
+GUI.SS_Form1.dtp_FiscalYear.CustomFormat("yyy")
+GUI.SS_Form1.ddl_Summarize.AddItem("Fiscal Year",1)
+GUI.SS_Form1.ddl_Summarize.AddItem("Date Range",2)
+GUI.SS_Form1.ddl_Summarize.ListIndex(0)
+GUI.SS_Form1.fr_DateRange.Visible(False)
+GUI.SS_Form1..Show
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Main.End
+
+Program.Sub.ddl_Summarize_Change.Start
+Program.Sub.ddl_Summarize_Change.End
+
+Program.Sub.ddl_Summarize_Click.Start
+F.Intrinsic.Control.SetErrorHandler("ddl_Summarize_Change_Err")
+F.Intrinsic.Control.ClearErrors
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!ddl_Summarize.Value,=,"Date Range")
+	GUI.SS_Form1.fr_DateRange.Visible(True)
+	GUI.SS_Form1.fr_FiscalYear.Visible(False)
+F.Intrinsic.Control.Else
+	GUI.SS_Form1.fr_FiscalYear.Visible(True)
+	GUI.SS_Form1.fr_DateRange.Visible(False)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("ddl_Summarize_Change_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(SS_Form1_Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.ddl_Summarize_Click.End
+
+Program.Sub.chk_AllDates_Click.Start
+F.Intrinsic.Control.SetErrorHandler("chk_AllDates_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+'All Dates
+F.Intrinsic.Control.If(V.Screen.SS_Form1!chk_AllDates.Value,=,1)
+	'Disable entry of date range
+	Gui.SS_Form1.dtp_BegDate.enabled(false)
+	Gui.SS_Form1.dtp_EndDate.Enabled(false)
+F.Intrinsic.control.Else
+	'Enable entry of date range
+	Gui.SS_Form1.dtp_BegDate.Enabled(true)
+	Gui.SS_Form1.dtp_EndDate.Enabled(true)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("chk_AllDates_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(SS_Form1_Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.chk_AllDates_Click.End
+
+Program.Sub.cmd_Print_Click.Start
+F.Intrinsic.Control.SetErrorHandler("cmd_Print_Click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCon.Declare(Long)
+
+Gui.SS_Form1..Visible(False)
+
+'Reading the company option for currency
+F.global.general.readoption("000000",1,"0",0000,V.Global.Currency)
+
+'This is setting the RunId and identifying the report Id
+F.Global.BI.GetRunID(V.Global.iBIRunID)
+F.Intrinsic.Control.If(V.Ambient.IsInIDE,=,True)
+        F.Global.BI.StartLogging(V.global.iBIRunID,805,0,"",V.global.iLogID)
+F.Intrinsic.Control.Else
+        F.Global.BI.StartLogging(V.global.iBIRunID,-1,-1,"",V.global.iLogID)
+F.Intrinsic.Control.EndIf
+
+'Setting the properties
+V.Global.sProps.Set("IH.InvoiceNumber*!*IH.SalesOrderNumber*!*IH.ShipmentSequence*!*IH.Information-InvoiceDate*!*IH.Shipment-SalesOrder-Customer-CustomerNumber*!*IH.Shipment-SalesOrder-Billing-Address-Name*!*")
+V.Global.sProps.Append("IH.Shipment-SalesOrder-Billing-Address-City*!*IH.Shipment-SalesOrder-Billing-Address-State*!*")
+V.Global.sProps.Append("IL.SalesOrderLineNumber*!*IL.ShipmentLine-SalesOrderLine-Pricing-MonetaryValue-Company-Extended*!*IL.ShipmentLine-SalesOrderLine-Information-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-TaxAuthorityCode*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-TaxAuthorityCode*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-TaxAuthorityCode*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-TaxAuthorityCode*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-TaxAuthorityCode*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-Apply*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-Apply*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-Apply*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-Apply*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-Rate*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-Rate*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-Rate*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-Rate*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-Description*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-Description*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-Description*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-Description*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-Description*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-MonetaryValue-Company-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-MonetaryValue-Company-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-MonetaryValue-Company-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-MonetaryValue-Company-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-MonetaryValue-Company-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-MonetaryValue-Company-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-MonetaryValue-Company-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-MonetaryValue-Company-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-MonetaryValue-Company-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-MonetaryValue-Company-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-MonetaryValue-Customer-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-MonetaryValue-Customer-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-MonetaryValue-Customer-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-MonetaryValue-Customer-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-MonetaryValue-Customer-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-MonetaryValue-Customer-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-MonetaryValue-Customer-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-MonetaryValue-Customer-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-MonetaryValue-Customer-Total*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-MonetaryValue-Customer-Total*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-MonetaryValue-Company-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-MonetaryValue-Company-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-MonetaryValue-Company-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-MonetaryValue-Company-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-MonetaryValue-Company-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-MonetaryValue-Company-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-MonetaryValue-Company-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-MonetaryValue-Company-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-MonetaryValue-Company-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-MonetaryValue-Company-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-MonetaryValue-Customer-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-MonetaryValue-Customer-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-MonetaryValue-Customer-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-MonetaryValue-Customer-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-MonetaryValue-Customer-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-MonetaryValue-Customer-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-MonetaryValue-Customer-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-MonetaryValue-Customer-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-MonetaryValue-Customer-Taxable*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-MonetaryValue-Customer-Taxable*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-TaxAuthorityZone*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-TaxAuthorityZone*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-TaxAuthorityZone*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-TaxAuthorityZone*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-Type*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-Type*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-Type*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-Type*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-0-AccountNumber*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-1-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-2-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-3-AccountNumber*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-4-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-5-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-6-AccountNumber*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Tax-Authorities-7-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-8-AccountNumber*!*IL.ShipmentLine-SalesOrderLine-Tax-Authorities-9-AccountNumber*!*")
+V.Global.sProps.Append("IL.ShipmentLine-SalesOrderLine-Accounting-Account-AccountNumber")
+
+'Creating object instances
+F.Global.Object.Create("oInvoiceCL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon)
+F.Global.Object.Create("oInvoiceC","Sales.Invoicing.Invoices","GlobalDB",V.Local.iCon)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!ddl_Summarize.Value,=,"Fiscal Year")
+	F.Intrinsic.Control.CallSub(Print_By_FiscalYear)
+F.Intrinsic.Control.ElseIf(V.Screen.SS_Form1!ddl_Summarize.Value,=,"Date Range")
+	F.Intrinsic.Control.CallSub(Print_By_DateRange)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.If(V.DataTable.dtSumSales.Exists,=,True)
+	F.Intrinsic.Control.If(V.DataTable.dtSumSales.RowCount,>,0)
+		'Add Expression Columns
+		F.Intrinsic.Control.CallSub(Add_Expression_Columns)
+		'Filter DataTable
+		F.Intrinsic.Control.CallSub(Filter_DataTable)
+		'Load to Z table
+		F.Intrinsic.Control.CallSub(Load_To_Table)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+
+'This is calling the Crystal Report
+F.Global.BI.StopLogging(V.Global.iLogID)
+F.Intrinsic.Control.CallSub(CallBI)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmd_Print_Click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(SS_Form1_Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.cmd_Print_Click.End
+
+Program.Sub.Load_To_Table.Start
+'Load to z table.
+V.Local.sFm.Declare(String)
+'Add runid column
+F.Data.DataTable.AddColumn("dtSumSalesJrnl","BIRUNID","Long",V.Global.iBIRunID)
+'Map to SQL Table
+V.Local.sFm.Set("BIRUNID@!@BIRUNID")
+V.Local.sFm.Append("*!*InvoiceNumber@!@INVOICE")
+V.Local.sFm.Append("*!*Information-InvoiceDate@!@DATE_INVOICE")
+V.Local.sFm.Append("*!*Shipment-SalesOrder-Customer-CustomerNumber@!@CUSTOMER")
+V.Local.sFm.Append("*!*Shipment-SalesOrder-Billing-Address-Name@!@NAME_CUSTOMER")
+V.Local.sFm.Append("*!*Total-Invoice@!@AMOUNT_INVOICE")
+V.Local.sFm.Append("*!*Net-Sales@!@NET_SALES")
+V.Local.sFm.Append("*!*Column-Freight@!@FREIGHT")
+V.Local.sFm.Append("*!*ShipmentLine-SalesOrderLine-Information-Type@!@LINE_TYPE")
+V.Local.sFm.Append("*!*Sales-Tax@!@TAX_TOTAL")
+
+'Save to db.
+F.ODBC.connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.puser,V.Ambient.PPass)
+F.Data.DataTable.SaveToDB("dtSumSalesJrnl","conx","Z_GL_SUM_SALES_JRNL","",128,V.Local.sFm)
+F.ODBC.Connection!conx.Close
+
+Program.Sub.Load_To_Table.End
+
+Program.Sub.Filter_DataTable.Start
+F.Intrinsic.Control.SetErrorHandler("Filter_DataTable_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.strFilter.Declare(String)
+V.Local.strFilter.Set("")
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!chk_ExclAccts.Value,=,1)
+	V.Local.strFilter.Append("[Excl-Acct-Flag] = false")
+F.Intrinsic.Control.Else
+	V.Local.strFilter.Append("([Excl-Acct-Flag] = false OR [Excl-Acct-Flag] = true)")
+F.Intrinsic.Control.EndIf
+
+F.Data.DataView.Create("dtSumSales","dvSumSales",22,V.Local.strFilter,"")
+F.Data.DataView.ToDataTable("dtSumSales","dvSumSales","dtSumSalesJrnl",True)
+
+F.Data.DataView.Close("dtSumSales", "dvSumSales")
+F.Data.DataTable.Close("dtSumSales")
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Filter_DataTable_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(SS_Form1_Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Filter_DataTable.End
+
+Program.Sub.Add_Expression_Columns.Start
+'Determine Net Sales
+F.Intrinsic.Control.CallSub(Column_Net_Sales)
+'Determine Freight
+F.Intrinsic.Control.CallSub(Column_Freight)
+'Determine Sales Tax
+F.Intrinsic.Control.CallSub(Column_Sales_Tax)
+'Calculate Invoice Amount
+F.Intrinsic.Control.CallSub(Column_Amount_Invoice)
+'Exclusion Account Flag
+F.Intrinsic.Control.CallSub(Column_Exclusion_Acct_Flag)
+
+Program.Sub.Add_Expression_Columns.End
+
+Program.Sub.Column_Net_Sales.Start
+F.Data.DataTable.AddExpressionColumn("dtSumSales","Net-Sales","Float","IIF([ShipmentLine-SalesOrderLine-Information-Type] <> 4,[ShipmentLine-SalesOrderLine-Pricing-MonetaryValue-Company-Extended],0)")
+
+Program.Sub.Column_Net_Sales.End
+
+Program.Sub.Column_Freight.Start
+F.Data.DataTable.AddExpressionColumn("dtSumSales","Column-Freight","Float","IIF([ShipmentLine-SalesOrderLine-Information-Type] = 4,[ShipmentLine-SalesOrderLine-Pricing-MonetaryValue-Company-Extended],0)")
+
+Program.Sub.Column_Freight.End
+
+Program.Sub.Column_Sales_Tax.Start
+F.Data.DataTable.AddExpressionColumn("dtSumSales","Sales-Tax","Float","[ShipmentLine-SalesOrderLine-Tax-Authorities-0-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-1-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-2-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-3-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-4-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-5-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-6-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-7-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-8-MonetaryValue-Company-Total] + [ShipmentLine-SalesOrderLine-Tax-Authorities-9-MonetaryValue-Company-Total]")
+
+Program.Sub.Column_Sales_Tax.End
+
+Program.Sub.Column_Amount_Invoice.Start
+F.Data.DataTable.AddExpressionColumn("dtSumSales","Total-Invoice","Float","[Net-Sales] + [Column-Freight] + [Sales-Tax]")
+
+Program.Sub.Column_Amount_Invoice.End
+
+Program.Sub.Column_Exclusion_Acct_Flag.Start
+'Exculsion Account Flag
+V.Local.i.Declare(Long)
+V.Local.ii.Declare(Long)
+V.Local.iCon.Declare(Long)
+V.Local.iRet.Declare(Long)
+V.Local.sProps.Declare(String)
+V.Local.sQuery.Declare(String)
+V.Local.Array_Excl_Acct.Declare(String)
+V.Local.Exp.Declare(String)
+V.Local.Ord.Declare(String)
+V.Local.sQuery.Set("SELECT ACCT_NUM FROM AR_EXCL_ACCT")
+
+'Add Exclusion acct column to datatable. 
+F.Data.DataTable.AddColumn("dtSumSales","Excl-Acct-Flag","Boolean",False)
+'Use dataview to sort and find top and lowest acct number to use as a range for pulling in object. 
+F.Data.DataView.Create("dtSumSales","dvSumSales")
+'make sure account number is not blank
+F.Data.DataView.SetFilter("dtSumSales","dvSumSales","[ShipmentLine-SalesOrderLine-Accounting-Account-AccountNumber] <> ''")
+F.Intrinsic.Control.If(V.DataView.dtSumSales!dvSumSales.RowCount,>=,0)
+	'Sort acct numbers ascending.
+	'Pull objects
+	'Bring in all 90 exclusion accounts.
+	F.ODBC.connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.puser,V.Ambient.PPass)
+	Function.Data.DataTable.CreateFromSQL("dtExclAcct","conx",V.Local.sQuery,True)
+	F.ODBC.Connection!conx.Close
+	'F.Global.Object.LoadDataTable("dtExclAcct","oExclAcct","Accounting.AR.ARExclusionAccounts","GlobalDB",V.Local.iCon,1,TRUE,,1,90,V.Local.iRet)
+F.Intrinsic.Control.EndIf
+F.Data.DataView.Close("dtSumSales","dvSumSales")
+
+'If table exists, see if any lines show up in the ExlAcct Datatable.. if it does, flag Exclusion-Acct-Flag column as True, otherwise, False.
+F.Intrinsic.Control.If(V.DataTable.dtExclAcct.Exists,=,True)
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.dtExclAcct.RowCount--,1)
+		'Select from IvcCust where Excl_acct = the dtExlAcct Acct Number
+		F.Intrinsic.String.Build("[ShipmentLine-SalesOrderLine-Accounting-Account-AccountNumber] = '{0}'",V.DataTable.dtExclAcct(V.Local.i).ACCT_NUM.FieldValString,V.Local.Exp)
+		F.Data.DataTable.Select("dtSumSales",V.Local.Exp,V.Local.Ord)
+		'if records found then loop through each ordinal returned, setting the Excl-Acct-Flag to True
+		F.Intrinsic.Control.If(V.Local.Ord,<>,"***NORETURN***")
+			F.Intrinsic.String.Split(V.Local.Ord,"*!*",V.Local.Ord)
+			F.Intrinsic.Control.For(V.Local.ii,V.Local.Ord.LBound,V.Local.Ord.UBound,1)
+				F.Data.DataTable.SetValue("dtSumSales",V.Local.Ord(V.Local.ii).Long,"Excl-Acct-Flag",True)
+			F.Intrinsic.Control.Next(V.Local.ii)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.i)
+F.Intrinsic.Control.EndIf
+
+Program.Sub.Column_Exclusion_Acct_Flag.End
+
+Program.Sub.Print_By_FiscalYear.Start
+F.Intrinsic.Control.SetErrorHandler("Print_By_FiscalYear_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCon.Declare(Long)
+V.Local.fisYear.Declare(Long)
+V.Local.iRet.Declare(Long)
+V.Local.i.Declare(Long)
+
+F.Intrinsic.Date.Year(V.Screen.SS_Form1!dtp_FiscalYear.Value,V.Local.fisYear)
+F.Intrinsic.Date.DateSerial(V.Local.fisYear,01,01,V.Global.begDate)
+F.Intrinsic.Date.DateSerial(V.Local.fisYear,12,31,V.Global.endDate)
+
+F.Global.Object.LoadDataTable("dtSalesSumH","oInvH","Sales.Invoicing.Invoices","GlobalDB",V.Local.iCon,171,TRUE,,V.Global.begDate,V.Global.endDate,V.Local.iRet)
+	
+F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.dtSalesSumH.RowCount--,1)
+	F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,True)
+		F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.RowCount--,>=,0)
+			F.Global.Object.LoadDataTable("dtRet","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+			F.Intrinsic.Control.If(V.DataTable.dtRet.Exists,=,True)
+				F.Intrinsic.Control.If(V.DataTable.dtRet.RowCount--,>=,0)
+					Function.Data.DataTable.Merge("dtRet","dtSalesSumL",True,4)
+					Function.Data.DataTable.Close("dtRet")
+				F.Intrinsic.Control.Else
+					Function.Data.DataTable.Close("dtRet")
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.Else
+			Function.Data.DataTable.Close("dtSalesSumL")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,False)
+		F.Global.Object.LoadDataTable("dtSalesSumL","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.Next(V.Local.i)
+
+F.Data.Linq.Join("Innerjoin","DataTable","dtSalesSumH*!*IH","DataTable","dtSalesSumL*!*IL","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+
+'F.Data.Linq.Join("Innerjoin","Object","oInvoiceC*!*IH",171,"GlobalDB",V.Local.iCon,V.Global.begDate,V.Global.endDate,"Object","oInvoiceCL*!*IL",485,"GlobalDB",V.Local.iCon,"0000000","9999999","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Print_By_FiscalYear_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	'If no data found in data table, exitsub.
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,=,23300)
+		F.Global.Object.CloseConnection("GlobalDB",V.Local.iCon)
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Print_By_FiscalYear.End
+
+Program.Sub.Print_By_DateRange.Start
+F.Intrinsic.Control.SetErrorHandler("Print_By_DateRange_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCon.Declare(Long)
+V.Local.begDate.Declare(Date)
+V.Local.endDate.Declare(Date)
+V.Local.iRet.Declare(Long)
+V.Local.i.Declare(Long)
+
+V.Local.begDate.Set(V.Screen.SS_Form1!dtp_BegDate.Value)
+V.Local.endDate.Set(V.Screen.SS_Form1!dtp_EndDate.Value)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!chk_AllDates.Value,=,1)
+	
+	F.Global.Object.LoadDataTable("dtSalesSumH","oInvH","Sales.Invoicing.Invoices","GlobalDB",V.Local.iCon,171,TRUE,,"01/01/1901","12/31/9999",V.Local.iRet)
+		
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.dtSalesSumH.RowCount--,1)
+		F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,True)
+			F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.RowCount--,>=,0)
+				F.Global.Object.LoadDataTable("dtRet","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+				F.Intrinsic.Control.If(V.DataTable.dtRet.Exists,=,True)
+					F.Intrinsic.Control.If(V.DataTable.dtRet.RowCount--,>=,0)
+						Function.Data.DataTable.Merge("dtRet","dtSalesSumL",True,4)
+						Function.Data.DataTable.Close("dtRet")
+					F.Intrinsic.Control.Else
+						Function.Data.DataTable.Close("dtRet")
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Else
+				Function.Data.DataTable.Close("dtSalesSumL")
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,False)
+			F.Global.Object.LoadDataTable("dtSalesSumL","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Data.Linq.Join("Innerjoin","DataTable","dtSalesSumH*!*IH","DataTable","dtSalesSumL*!*IL","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+
+	'F.Data.Linq.Join("Innerjoin","Object","oInvoiceC*!*IH",171,"GlobalDB",V.Local.iCon,"01/01/1901","12/31/9999","Object","oInvoiceCL*!*IL",485,"GlobalDB",V.Local.iCon,"0000000","9999999","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+F.Intrinsic.Control.Else
+	
+	F.Global.Object.LoadDataTable("dtSalesSumH","oInvH","Sales.Invoicing.Invoices","GlobalDB",V.Local.iCon,171,TRUE,,V.Local.begDate,V.Local.endDate,V.Local.iRet)
+		
+	F.Intrinsic.Control.For(V.Local.i,0,V.DataTable.dtSalesSumH.RowCount--,1)
+		F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,True)
+			F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.RowCount--,>=,0)
+				F.Global.Object.LoadDataTable("dtRet","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+				F.Intrinsic.Control.If(V.DataTable.dtRet.Exists,=,True)
+					F.Intrinsic.Control.If(V.DataTable.dtRet.RowCount--,>=,0)
+						Function.Data.DataTable.Merge("dtRet","dtSalesSumL",True,4)
+						Function.Data.DataTable.Close("dtRet")
+					F.Intrinsic.Control.Else
+						Function.Data.DataTable.Close("dtRet")
+					F.Intrinsic.Control.EndIf
+				F.Intrinsic.Control.EndIf
+			F.Intrinsic.Control.Else
+				Function.Data.DataTable.Close("dtSalesSumL")
+			F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.If(V.DataTable.dtSalesSumL.Exists,=,False)
+			F.Global.Object.LoadDataTable("dtSalesSumL","oInvL","Sales.Invoicing.InvoiceLines","GlobalDB",V.Local.iCon,500,TRUE,,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).InvoiceNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).SalesOrderNumber.FieldValString,V.DataTable.dtSalesSumH(V.Local.i).ShipmentSequence.FieldValString,V.Local.iRet)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.Next(V.Local.i)
+	
+	F.Data.Linq.Join("Innerjoin","DataTable","dtSalesSumH*!*IH","DataTable","dtSalesSumL*!*IL","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+	
+	'F.Data.Linq.Join("Innerjoin","Object","oInvoiceC*!*IH",171,"GlobalDB",V.Local.iCon,V.Screen.SS_Form1!dtp_BegDate.Value,V.Screen.SS_Form1!dtp_EndDate.Value,"Object","oInvoiceCL*!*IL",485,"GlobalDB",V.Local.iCon,"0000000","9999999","IH.InvoiceNumber = IL.InvoiceNumber AND IH.SalesOrderNumber = IL.SalesOrderNumber AND IH.ShipmentSequence = IL.ShipmentSequence",V.Global.sProps,"","","","dtSumSales",True)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Print_By_DateRange_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	'If no data found in data table, exitsub.
+	F.Intrinsic.Control.If(V.Ambient.ErrorNumber,=,23300)
+		F.Global.Object.CloseConnection("GlobalDB",V.Local.iCon)
+		F.Intrinsic.Control.ExitSub
+	F.Intrinsic.Control.EndIf
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.Print_By_DateRange.End
+
+Program.Sub.CallBI.Start
+F.Intrinsic.Control.SetErrorHandler("CallBI_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sParams.Declare(String)
+V.Local.sValues.Declare(String)
+V.Local.iRet.Declare(Long)
+
+V.Local.sParams.set("FiscalBegDate*!*FiscalEndDate*!*BegInvoiceDate*!*EndInvoiceDate*!*AllDates*!*SumOption*!*CURR")
+
+F.Intrinsic.String.Build("{0}*!*{1}*!*{2}*!*{3}*!*{4}*!*{5}*!*{6}",V.Global.begDate,V.Global.endDate,V.Screen.SS_Form1!dtp_BegDate.Value,V.Screen.SS_Form1!dtp_EndDate.Value,V.Screen.SS_Form1!chk_AllDates.Value,V.Screen.SS_Form1!ddl_Summarize.Value,V.Global.Currency,V.Local.sValues)
+
+F.Global.BI.RunReportPreProcessor(V.Global.iBIRunID,V.Global.iLogID,V.Local.sParams,V.Local.sValues,"",-1,True,"",-1,"",-1,"","",v.Local.iRet)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("CallBI_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.G2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.CallSub(SS_Form1_Unload)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.CallBI.End
+
+Program.Sub.SS_Form1_UnLoad.Start
+F.Intrinsic.Control.SetErrorHandler("SS_Form1_Unload_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iCon.Declare(Long)
+
+'Closing Connection
+F.Global.Object.CloseConnection("GlobalDB",V.Local.iCon)
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("SS_Form1_Unload_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	F.Intrinsic.String.Concat("Project: BIR_GL_Summary_Sales_Jrnl.g2u",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.EndIf
+
+Program.Sub.SS_Form1_UnLoad.End
+
+Program.Sub.Comments.Start
+${$0$}$$}$$}$12:00:00 AM$}$False
+Program.Sub.Comments.End
